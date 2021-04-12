@@ -23,6 +23,20 @@ def CAV_UE(cav_path_distribution_ini):
         System_time = np.sum(t0_list * (x.value+cav_path_distribution) + t0_list * 0.15 * (x.value+cav_path_distribution)**5 * ca_inverse_power_list)
     return System_time
 
+def CAV_UE_xy(myx, myy):
+    x = cp.Variable(road_num)
+    cav_path_distribution = np.zeros((15,))
+    cav_path_distribution[8] = myx
+    cav_path_distribution[10] = myy
+    UE_objective = cp.Minimize(cp.sum(cp.multiply(t0_list, x+cav_path_distribution) + cp.multiply(t0_list, cp.multiply(0.03*cp.power(x+cav_path_distribution, 5),ca_inverse_power_list))))
+    constraints = [x >= 0, cp.sum(x+cav_path_distribution) == demand]
+    prob = cp.Problem(UE_objective, constraints)
+    result = prob.solve()
+    if x.value is None:
+        System_time = 100
+    else:
+        System_time = np.sum(t0_list * (x.value+cav_path_distribution) + t0_list * 0.15 * (x.value+cav_path_distribution)**5 * ca_inverse_power_list)
+    return -System_time
 
 # def CAV_SO(cav_path_distribution):
 #     x = cp.Variable(road_num)

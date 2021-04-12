@@ -1,4 +1,4 @@
-from CAV_UE import CAV_UE
+from CAV_UE import CAV_UE, CAV_UE_xy
 import numpy as np
 from sko.GA import GA
 from sko.PSO import PSO
@@ -6,6 +6,7 @@ from sko.SA import SA
 import pandas as pd
 import matplotlib.pyplot as plt
 from sko.tools import set_run_mode
+from conf import *
 def plain_UE():
     cav_path_distribution_ini = np.array([0.0]*2)
     cav_path_distribution_ini[0] = 0.6 
@@ -13,7 +14,7 @@ def plain_UE():
     system_time = CAV_UE(cav_path_distribution_ini=cav_path_distribution_ini)
     print(system_time)
 
-def CAV_included_best_UE(control_portion):
+def GA_CAV_included_best_UE(control_portion):
     constraint_ueq = [
         lambda x: sum(x) - 5*control_portion,
     ]
@@ -24,18 +25,29 @@ def CAV_included_best_UE(control_portion):
     best_x, best_y = ga.run()
     print('best_x:', best_x, '\n', 'best_y:', best_y)
     return best_y
-    # print(ga)
-    # Y_history = pd.DataFrame(ga.all_history_Y)
-    # fig, ax = plt.subplots(2, 1)
-    # ax[0].plot(Y_history.index, Y_history.values, '.', color='red')
-    # Y_history.min(axis=1).cummin().plot(kind='line')
-    # plt.show()
 
-best_y_list = []
-for control_ratio in [0.01, 0.02, 0.05, 0.08, 0.1, 0.5, 0.7, 1.0]:
-    print(control_ratio)
-    best_y_list.append(CAV_included_best_UE(control_ratio))
-print(best_y_list)
-
+# best_y_list = []
+# for control_ratio in [0.01, 0.02, 0.05, 0.08, 0.1, 0.5, 0.7, 1.0]:
+#     print(control_ratio)
+#     best_y_list.append(GA_CAV_included_best_UE(control_ratio))
+# print(best_y_list)
 
 # plain_UE()
+
+
+from bayes_opt import BayesianOptimization
+
+# Bounded region of parameter space
+pbounds = {'myx': (0, 0.2), 'myy': (0, 0.2)}
+
+optimizer = BayesianOptimization(
+    f=CAV_UE_xy,
+    pbounds=pbounds,
+    random_state=1,
+)
+
+optimizer.maximize(
+    init_points=20,
+    n_iter=30,
+)
+print(optimizer.max)

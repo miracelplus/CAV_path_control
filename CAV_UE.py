@@ -1,6 +1,7 @@
 import pandas as pd
 import cvxpy as cp
 import numpy as np
+from conf import *
 road_num = 15
 csv_data = pd.read_csv('./network/toy_network.csv')
 t0_list = csv_data["t0"].values
@@ -36,6 +37,8 @@ def CAV_UE_xy(myx, myy):
         System_time = 100
     else:
         System_time = np.sum(t0_list * (x.value+cav_path_distribution) + t0_list * 0.15 * (x.value+cav_path_distribution)**5 * ca_inverse_power_list)
+    if myx+myy > control_ratio*demand:
+        System_time = System_time + 1000*(myx+myy-control_ratio*demand)
     return -System_time
 
 # def CAV_SO(cav_path_distribution):

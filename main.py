@@ -6,6 +6,7 @@ from sko.SA import SA
 import pandas as pd
 import matplotlib.pyplot as plt
 from sko.tools import set_run_mode
+from bayes_opt import BayesianOptimization
 from conf import *
 def plain_UE():
     cav_path_distribution_ini = np.array([0.0]*2)
@@ -26,28 +27,27 @@ def GA_CAV_included_best_UE(control_portion):
     print('best_x:', best_x, '\n', 'best_y:', best_y)
     return best_y
 
-# best_y_list = []
-# for control_ratio in [0.01, 0.02, 0.05, 0.08, 0.1, 0.5, 0.7, 1.0]:
-#     print(control_ratio)
-#     best_y_list.append(GA_CAV_included_best_UE(control_ratio))
-# print(best_y_list)
-
 # plain_UE()
 
+def BO_CAV_included_best_UE():
+    # Bounded region of parameter space
+    pbounds = {'myx': (0, 5*control_ratio), 'myy': (0, 5*control_ratio)}
+    optimizer = BayesianOptimization(
+        f=CAV_UE_xy,
+        pbounds=pbounds,
+        random_state=1,
+    )
+    optimizer.maximize(
+        init_points=20,
+        n_iter=30,
+    )
+    return optimizer.max["target"]
 
-from bayes_opt import BayesianOptimization
+def GA_best_result():
+    best_y_list = []
+    global control_ratio
+    for control_ratio in [0.01, 0.02, 0.05, 0.08, 0.1, 0.5, 0.7, 1.0]:
+        best_y_list.append(GA_CAV_included_best_UE(control_ratio))
+    print(best_y_list)
 
-# Bounded region of parameter space
-pbounds = {'myx': (0, 0.2), 'myy': (0, 0.2)}
-
-optimizer = BayesianOptimization(
-    f=CAV_UE_xy,
-    pbounds=pbounds,
-    random_state=1,
-)
-
-optimizer.maximize(
-    init_points=20,
-    n_iter=30,
-)
-print(optimizer.max)
+BO_CAV_included_best_UE()
